@@ -3,7 +3,7 @@ import countriesData from "./countries.json";
 import { Card, CardContent, Typography, TextField, Button, Stack, Alert, Fade } from "@mui/material";
 import { red } from "@mui/material/colors";
 
-const MAX_ERRORS = 1;
+const MAX_ERRORS = 15;
 
 const Country = () => {
     const [selectedCountry, setSelectedCountry] = useState("");
