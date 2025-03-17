@@ -1,0 +1,12 @@
+.box{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.MuiBox-root,#box{
+    width: 100% !important;
+}
+.MuiBox-root{
+    margin: 10px !important;
+}
