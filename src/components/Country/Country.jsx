@@ -1,24 +1,36 @@
 import React, { useState, useEffect } from "react";
 import countriesData from "./countries.json";
 import { Card, CardContent, Typography, TextField, Button, Stack, Alert, Fade } from "@mui/material";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
 
-const MAX_ERRORS = 15;
+const GAME_DURATION = 120; // 2 minutes in seconds
 
 const Country = () => {
     const [selectedCountry, setSelectedCountry] = useState("");
     const [hiddenWord, setHiddenWord] = useState([]);
     const [guessedLetters, setGuessedLetters] = useState([]);
-    const [errors, setErrors] = useState(0);
     const [message, setMessage] = useState("");
+    const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
+    const [gameOver, setGameOver] = useState(false);
+    const [isPaused, setIsPaused] = useState(false); // Nouvelle variable d'état pour la pause
 
     useEffect(() => {
-        // Choisir un pays au hasard et remplacer les tirets par des underscores
         const country = countriesData[Math.floor(Math.random() * countriesData.length)].toUpperCase();
         setSelectedCountry(country);
-        // Remplacer les tirets par des underscores dans le mot caché
         setHiddenWord(Array(country.length).fill("_").map((_, index) => country[index] === "-" ? "-" : "_"));
     }, []);
+
+    useEffect(() => {
+        if (timeLeft > 0 && !gameOver && !isPaused) { // Vérification de l'état de pause
+            const timer = setInterval(() => {
+                setTimeLeft(prevTime => prevTime - 1);
+            }, 1000);
+            return () => clearInterval(timer);
+        } else if (timeLeft === 0) {
+            setMessage(`Temps écoulé ! Le pays était ${selectedCountry}.`);
+            setGameOver(true);
+        }
+    }, [timeLeft, gameOver, isPaused]); // Dépendances mises à jour
 
     const resetGame = () => {
         window.location.reload();
@@ -26,6 +38,8 @@ const Country = () => {
 
     const handleGuess = (event) => {
         event.preventDefault();
+        if (gameOver) return;
+
         const letter = event.target.letter.value.toUpperCase();
         event.target.reset();
 
@@ -41,11 +55,8 @@ const Country = () => {
 
             if (!updatedHiddenWord.includes("_")) {
                 setMessage("Bravo ! Vous avez trouvé le pays !");
-            }
-        } else {
-            setErrors(errors + 1);
-            if (errors + 1 >= MAX_ERRORS) {
-                setMessage(`Perdu ! Le pays était ${selectedCountry}.`);
+                setGameOver(true);
+                setIsPaused(true); // Mettre en pause le chronomètre sans le réinitialiser
             }
         }
     };
@@ -53,11 +64,16 @@ const Country = () => {
     return (
         <div style={{
             display: "flex",
-            justifyContent: "center",
+            flexDirection: "column",
             alignItems: "center",
+            justifyContent: "center",
             height: "100vh"
         }}>
             <Analytics />
+           
+            <Typography variant="h6" color={timeLeft <= 10 ? "red" : "black"}>
+                Temps restant : {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+            </Typography>
             <Stack alignItems="center" justifyContent="center" spacing={2}>
                 <Card sx={{ textAlign: "center", m: 2, p: 1 }}>
                     <CardContent>
@@ -65,14 +81,11 @@ const Country = () => {
                         <Typography variant="h6" sx={{ letterSpacing: 2, fontWeight: "bold" }}>
                             {hiddenWord.join(" ")}
                         </Typography>
-                        <Typography variant="body1" sx={{ mt: 2, color: 'red' }}>
-                            Erreurs : {errors} / {MAX_ERRORS}
-                        </Typography>
                         {!message && (
                             <form onSubmit={handleGuess} style={{ marginTop: 20 }}>
                                 <Stack direction="row" spacing={1} justifyContent="center">
-                                    <TextField name="letter" variant="outlined" size="small" inputProps={{ maxLength: 1, style: { textAlign: "center" } }} required />
-                                    <Button type="submit" variant="contained">Deviner</Button>
+                                    <TextField name="letter" variant="outlined" size="small" inputProps={{ maxLength: 1, style: { textAlign: "center" } }} required disabled={gameOver} />
+                                    <Button type="submit" variant="contained" disabled={gameOver}>Deviner</Button>
                                 </Stack>
                             </form>
                         )}
