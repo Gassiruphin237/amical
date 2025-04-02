@@ -25,9 +25,11 @@ const Country = () => {
         setSelectedCountry(countryData);
         const normalizedName = countryData.name.toUpperCase();
         setHiddenWord(
-            normalizedName.split('').map(char => 
-                char === '-' || char === ' ' ? char : '_'
-            )
+            normalizedName.split('').map(char => {
+                if (char === '-') return '-';
+                if (char === ' ') return '  '; // Double espace pour meilleure visibilité
+                return '_';
+            })
         );
         setGuessedLetters([]);
         setMessage("");
