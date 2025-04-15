@@ -1,14 +1,15 @@
-import React from 'react'
-// import Devise from './components/Devise'
-// import Bible from './components/Bible/Bible'
-import Country from './components/Country/Country'
-import '../src/App.css'
+import React from 'react';
+import Dashboard from './components/Amicale/Dashboard';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
 function App() {
   return (
-    <div>
-          <Country/>
-    </div>
-  )
+    <Router> 
+      <Routes>
+        <Route path="/*" element={<Dashboard />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
